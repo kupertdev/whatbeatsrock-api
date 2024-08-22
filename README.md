@@ -2,7 +2,7 @@
 
 ## Description
 
-This project represents the possibilities of interacting with whatbeatsrock.com API. It uses asynchronous programming to efficiently process requests and data.
+This project represents the possibilities of interacting with [whatbeatsrock.com](https://whatbeatsrock.com) API. It uses asynchronous programming to efficiently process requests and data.
 
 At the moment there is support for normal mode and modes from the community. That's all there is on the site itself 😅
 
