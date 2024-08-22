@@ -142,7 +142,7 @@ class Game:
         if not self.username:
 
             uuid_bytes = IDGenerator.generate_uuid_bytes()
-            gid = IDGenerator.format_uuid_bytes_to_string(uuid_bytes)
+            room_id = IDGenerator.format_uuid_bytes_to_string(uuid_bytes)
 
             keys = [
                 "previous_guess",
@@ -150,7 +150,7 @@ class Game:
                 "judgingCriteriaLoss",
                 "room_id",
             ]
-            values = ["rock", "beats", "does not beat", gid]
+            values = ["rock", "beats", "does not beat", room_id]
 
             add_memory_objects(self.memory_storage, keys, values)
 
