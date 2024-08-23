@@ -1,3 +1,5 @@
+# This file should not have been in the same folder as the API. Move it to a different location for the test run
+
 from whatbeatsrock.api.game import Game
 
 import logging
