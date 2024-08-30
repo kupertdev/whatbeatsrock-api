@@ -8,6 +8,9 @@ class IDGenerator:
     
     @staticmethod
     def generate_uuid_bytes() -> bytes:
+        """
+        Deprecated. Use generate_uuid_v4
+        """
         random_bytes = secrets.token_bytes(16)
         random_bytes = bytearray(random_bytes)
         random_bytes[6] = (random_bytes[6] & 0x0f) | 0x40
