@@ -1,7 +1,5 @@
-import asyncio
 import logging
-
-import httpx
+import cloudscraper
 from faker import Faker
 
 from whatbeatsrock.utils import *
@@ -54,7 +52,7 @@ class Game:
 
         return logger
 
-    async def get_user_id(self) -> str:
+    def get_user_id(self) -> str:
         """
         Fetch the user ID for the given username.
 
@@ -67,11 +65,11 @@ class Game:
         """
         url = self.api_endpoints.user_info.format(username=self.username)
 
-        user_data = await self.make_request("GET", url, None)
+        user_data = self.make_request("GET", url, None)
 
         return user_data["data"]["id"]
 
-    async def get_custom_game_info(self, room_id: str = None):
+    def get_custom_game_info(self, room_id: str = None):
         """
         Fetch custom game info from the API.
 
@@ -80,15 +78,15 @@ class Game:
 
         Example:
             >>> memory_storage.set("room_id", "123")
-            >>> await game.get_custom_game_info()
+            >>> game.get_custom_game_info()
         """
         user_id = self.memory_storage.get("room_id") if not room_id else room_id
         url = self.api_endpoints.game_info.format(user_id=user_id)
 
-        room_info = await self.make_request("GET", url, None)
+        room_info = self.make_request("GET", url, None)
         return room_info
 
-    async def game_request(self, previous_guess: str, guessed_word: str, room_id: str):
+    def game_request(self, previous_guess: str, guessed_word: str, room_id: str):
         """
         Send a game request to the API.
 
@@ -111,19 +109,15 @@ class Game:
             "gid" if not self.username else "oid": room_id,
         }
 
-        response_data = await self.make_request("POST", url, data)
+        response_data = self.make_request("POST", url, data)
 
         return response_data.get("data", {})
 
-    async def make_request(
+    def make_request(
         self, method: str = None, url: str = None, json_data: dict = None
     ) -> dict:
-        async with httpx.AsyncClient(
-            timeout=httpx.Timeout(
-                self.wait_for_response_time, connect=self.connect_timeout
-            )
-        ) as client:
-            response = await client.request(
+        with cloudscraper.create_scraper() as client:
+            response = client.request(
                 method, url, headers=self.headers, json=json_data
             )
             self.logger.info(f"Status Code: {response.status_code}")
@@ -137,12 +131,11 @@ class Game:
             except ValueError:
                 self.logger.error("JSON error. The request did not return json")
 
-    async def play_game(self):
+    def play_game(self):
         """Main game loop."""
         if not self.username:
 
-            uuid_bytes = IDGenerator.generate_uuid_bytes()
-            room_id = IDGenerator.format_uuid_bytes_to_string(uuid_bytes)
+            room_id = IDGenerator.generate_uuid_v4()
 
             keys = [
                 "previous_guess",
@@ -155,15 +148,16 @@ class Game:
             add_memory_objects(self.memory_storage, keys, values)
 
         else:
+            
             start_key = "attribute_data"
-            user_id = await self.get_user_id()
+            user_id = self.get_user_id()
 
             if not user_id:
                 self.logger.error("Failed to get user ID.")
                 raise ValueError("Failed to get user ID.")
 
             self.memory_storage.set("room_id", user_id)
-            game_info = await self.get_custom_game_info()
+            game_info = self.get_custom_game_info()
             game_info = game_info["data"]
 
             keys = ["previous_guess", "judgingCriteria", "judgingCriteriaLoss"]
@@ -183,7 +177,7 @@ class Game:
 
             guessed_word = input("Enter your guess: ").strip()
             room_id = self.memory_storage.get("room_id")
-            result: dict = await self.game_request(
+            result: dict = self.game_request(
                 previous_guess, guessed_word, room_id
             )
 
@@ -208,5 +202,4 @@ if __name__ == "__main__":
         "If you want to play custom game from community, enter user username or pass: "
     ).strip()
     game = Game(username=username)
-    asyncio.run(game.play_game())
-
+    game.play_game()
